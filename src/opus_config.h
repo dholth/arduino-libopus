@@ -219,3 +219,5 @@
 
 /* Do not build writing support */
 #define OGGZ_CONFIG_WRITE 1
+
+#include "micropython_malloc.h"
