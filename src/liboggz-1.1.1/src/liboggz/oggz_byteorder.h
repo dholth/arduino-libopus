@@ -46,7 +46,6 @@ _le_16 (unsigned short s)
 #endif
   return ret;
 }
-#endif /* _UNUSED_ */
 
 static  ogg_uint32_t
 _le_32 (ogg_uint32_t i)
@@ -112,6 +111,8 @@ _le_64 (ogg_int64_t l)
 #endif
   return (*(ogg_int64_t *)ucptr);
 }
+
+#endif /* _UNUSED_ */
 
 static ogg_int32_t
 int32_be_at (unsigned char *c)

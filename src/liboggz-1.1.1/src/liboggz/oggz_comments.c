@@ -49,7 +49,7 @@
 
 /*#define DEBUG*/
 
-#ifdef WIN32                                                                   
+#ifdef WIN32
 #define strcasecmp _stricmp
 #endif
 
@@ -370,7 +370,7 @@ _oggz_comment_add_byname (oggz_stream_t * stream, const char * name, const char 
     if (comment->name && !strcasecmp (name, comment->name)) {
       if (comment->value == NULL) {
         if (value == NULL) return comment;
-      } else if ((value && !strcmp (value, comment->value)) || 
+      } else if ((value && !strcmp (value, comment->value)) ||
                  (value == NULL && comment->value == NULL)) {
         return comment;
       }
@@ -388,7 +388,7 @@ int
 oggz_comment_add (OGGZ * oggz, long serialno, const OggzComment * comment)
 {
   oggz_stream_t * stream;
-  OggzComment * new_comment;
+  // OggzComment * new_comment;
 
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
 
@@ -421,7 +421,7 @@ oggz_comment_add_byname (OGGZ * oggz, long serialno,
                          const char * name, const char * value)
 {
   oggz_stream_t * stream;
-  OggzComment * new_comment;
+  // OggzComment * new_comment;
 
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
 
@@ -573,7 +573,7 @@ oggz_comments_decode (OGGZ * oggz, long serialno,
    size_t len;
    char *end;
    char * name, * value, * nvalue = NULL;
-   OggzComment * comment;
+  //  OggzComment * comment;
 
    if (length<8)
       return -1;
@@ -886,7 +886,7 @@ oggz_comment_generate(OGGZ * oggz, long serialno,
 	   framing byte. */
 	/* MACRO */
 	writeint24be(c_packet->packet, 1, (comment_length-1) );
-	if(FLAC_final_metadata_block) 
+	if(FLAC_final_metadata_block)
 	  {
 	    c_packet->packet[0] |= 0x80;
 	  }

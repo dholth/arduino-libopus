@@ -5,7 +5,7 @@
 // #undef CPU_INFO_BY_ASM
 
 // /* Get CPU Info by c method */
-// #undef CPU_INFO_BY_C 
+// #undef CPU_INFO_BY_C
 
 // /* Custom modes */
 // #undef CUSTOM_MODES
@@ -32,7 +32,7 @@
 // #undef FLOAT_APPROX
 
 // /* Fuzzing */
-// #undef FUZZING 
+// #undef FUZZING
 
 // /* Define to 1 if you have the <alloca.h> header file. */
 // #undef HAVE_ALLOCA_H
@@ -179,15 +179,15 @@
 // #undef STDC_HEADERS
 
 // /* Make use of alloca */
-// #undef USE_ALLOCA 
+// #undef USE_ALLOCA
 
 // /* Use C99 variable-size arrays */
-// #undef VAR_ARRAYS 
+// #undef VAR_ARRAYS
 
-/* Simulated Stack using the Heap */ 
+/* Simulated Stack using the Heap */
 #define NONTHREADSAFE_PSEUDOSTACK 1
 
-/* Simulated Stack Size using the Heap */ 
+/* Simulated Stack Size using the Heap */
 #define GLOBAL_STACK_SIZE 60000
 
 // /* Define to empty if `const' does not conform to ANSI C. */

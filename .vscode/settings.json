@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.xsh": "python",
+        "malloc.h": "c"
+    }
+}

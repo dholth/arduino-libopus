@@ -43,7 +43,7 @@ oggz_metric_dirac (OGGZ * oggz, long serialno,
   oggz_stream_t * stream;
   ogg_int64_t iframe, pframe;
   ogg_uint32_t pt;
-  ogg_uint16_t dist;
+  // ogg_uint16_t dist;
   ogg_uint16_t delay;
   ogg_int64_t dt;
   ogg_int64_t units;
