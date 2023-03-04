@@ -410,7 +410,7 @@ static OPUS_INLINE opus_int32 silk_ROR32( opus_int32 a32, opus_int rot )
 }
 
 /* Allocate opus_int16 aligned to 4-byte memory address */
-#if EMBEDDED_ARM
+#if defined(EMBEDDED_ARM)
 #define silk_DWORD_ALIGN __attribute__((aligned(4)))
 #else
 #define silk_DWORD_ALIGN

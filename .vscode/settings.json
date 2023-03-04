@@ -1,6 +1,14 @@
 {
     "files.associations": {
         "*.xsh": "python",
-        "malloc.h": "c"
+        "malloc.h": "c",
+        "oggz_private.h": "c",
+        "opus_config.h": "c",
+        "oggz_deprecated.h": "c",
+        "oggz.h": "c",
+        "oggz_stream.h": "c",
+        "oggz_compat.h": "c",
+        "stdlib.h": "c",
+        "stdio.h": "c"
     }
 }

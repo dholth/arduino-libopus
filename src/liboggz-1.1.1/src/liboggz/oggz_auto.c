@@ -119,7 +119,7 @@ auto_vorbis (OGGZ * oggz, long serialno, unsigned char * data, long length, void
   return 1;
 }
 
-#if USE_THEORA_PRE_ALPHA_3_FORMAT
+#ifdef USE_THEORA_PRE_ALPHA_3_FORMAT
 static int intlog(int num) {
   int ret=0;
   while(num>0){
@@ -155,7 +155,7 @@ auto_theora (OGGZ * oggz, long serialno, unsigned char * data, long length, void
    */
   if (fps_numerator == 0) fps_numerator = 1;
 
-#if USE_THEORA_PRE_ALPHA_3_FORMAT
+#ifdef USE_THEORA_PRE_ALPHA_3_FORMAT
   /* old header format, used by Theora alpha2 and earlier */
   keyframe_granule_shift = (header[36] & 0xf8) >> 3;
   keyframe_shift = intlog (keyframe_granule_shift - 1);

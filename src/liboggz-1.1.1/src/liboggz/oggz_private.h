@@ -37,6 +37,7 @@
 #include <sys/types.h>
 
 #include <ogg/ogg.h>
+
 #include <oggz/oggz_constants.h>
 #include <oggz/oggz_off_t.h>
 
@@ -280,7 +281,7 @@ int oggz_purge (OGGZ * oggz);
 /* metric_internal */
 
 int
-oggz_set_granulerate (OGGZ * oggz, long serialno, 
+oggz_set_granulerate (OGGZ * oggz, long serialno,
                                     ogg_int64_t granule_rate_numerator,
                                     ogg_int64_t granule_rate_denominator);
 
@@ -298,12 +299,12 @@ int oggz_set_preroll (OGGZ * oggz, long serialno, int preroll);
 int oggz_get_preroll (OGGZ * oggz, long serialno);
 
 /* oggz_auto */
- 
+
 int
 oggz_auto_read_bos_page (OGGZ * oggz, ogg_page * og, long serialno,
                          void * user_data);
 int
-oggz_auto_read_bos_packet (OGGZ * oggz, ogg_packet * op, long serialno, 
+oggz_auto_read_bos_packet (OGGZ * oggz, ogg_packet * op, long serialno,
                            void * user_data);
 
 int

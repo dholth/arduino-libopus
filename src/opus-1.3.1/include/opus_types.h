@@ -163,10 +163,9 @@
 
 #endif
 
-#ifdef ARDUINO
+#ifdef HAVE_CONFIG_H
 #include "opus_config.h"
 #include <assert.h>
-
 #endif
 
 #endif  /* OPUS_TYPES_H */

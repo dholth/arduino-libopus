@@ -218,6 +218,7 @@ oggz_set_first_granule (OGGZ * oggz, long serialno,
 }
 
 /** DEPRECATED **/
+#ifdef OGGZ_DEPRECATED_PLEASE
 int
 oggz_set_metric_linear (OGGZ * oggz, long serialno,
 			ogg_int64_t granule_rate_numerator,
@@ -236,4 +237,4 @@ oggz_set_metric_linear (OGGZ * oggz, long serialno,
 
   return oggz_metric_update (oggz, serialno);
 }
-
+#endif
