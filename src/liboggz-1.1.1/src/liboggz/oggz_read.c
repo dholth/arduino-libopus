@@ -228,8 +228,8 @@ typedef struct {
 } OggzBufferedPacket;
 
 OggzBufferedPacket *
-oggz_read_new_pbuffer_entry(OGGZ *oggz, oggz_packet * zp, 
-                            long serialno, oggz_stream_t * stream, 
+oggz_read_new_pbuffer_entry(OGGZ *oggz, oggz_packet * zp,
+                            long serialno, oggz_stream_t * stream,
                             OggzReader *reader)
 {
   OggzBufferedPacket *p;
@@ -283,11 +283,11 @@ oggz_read_update_gp(void *elem) {
     if (content < 0 || content >= OGGZ_CONTENT_UNKNOWN)
       return DLIST_ITER_CANCEL;
 
-    p->zp.pos.calc_granulepos = 
+    p->zp.pos.calc_granulepos =
       oggz_auto_calculate_gp_backwards(content, p->stream->last_granulepos,
                                        p->stream, &(p->zp.op),
                                        p->stream->last_packet);
-      
+
     p->stream->last_granulepos = p->zp.pos.calc_granulepos;
     p->stream->last_packet = &(p->zp.op);
   }
@@ -316,14 +316,14 @@ oggz_read_deliver_packet(void *elem) {
     oggz_get_unit (p->oggz, p->serialno, p->zp.pos.calc_granulepos);
 
   if (p->stream->read_packet) {
-    if ((cb_ret = p->stream->read_packet(p->oggz, &(p->zp), p->serialno, 
+    if ((cb_ret = p->stream->read_packet(p->oggz, &(p->zp), p->serialno,
 			       p->stream->read_user_data)) < 0) {
       p->oggz->cb_next = cb_ret;
       if (cb_ret == -1)
         return DLIST_ITER_ERROR;
     }
   } else if (p->reader->read_packet) {
-    if ((cb_ret = p->reader->read_packet(p->oggz, &(p->zp), p->serialno, 
+    if ((cb_ret = p->reader->read_packet(p->oggz, &(p->zp), p->serialno,
 			       p->reader->read_user_data)) < 0) {
       p->oggz->cb_next = cb_ret;
       if (cb_ret == -1)
@@ -394,7 +394,7 @@ oggz_read_sync (OGGZ * oggz)
           /* We can't tolerate holes in headers, so bail out. NB. as stream->packetno
            * has not yet been incremented, the current value refers to how many packets
            * have been processed prior to this one. */
-          if (stream->packetno < 2) return OGGZ_ERR_HOLE_IN_DATA;
+          if (stream->packetno < stream->numheaders - 1) return OGGZ_ERR_HOLE_IN_DATA;
 
           /* Holes in content occur in some files and pretty much don't matter,
            * so we silently swallow the notification and reget the packet. */
@@ -417,7 +417,7 @@ oggz_read_sync (OGGZ * oggz)
           int content;
 
           stream->packetno++;
-          
+
           /* Got a packet.  process it ... */
           granulepos = op->granulepos;
 
@@ -425,16 +425,16 @@ oggz_read_sync (OGGZ * oggz)
           if (content < 0 || content >= OGGZ_CONTENT_UNKNOWN) {
             reader->current_granulepos = granulepos;
 	  } else {
-            /* if we have no metrics for this stream yet, then generate them */      
-            if ((!stream->metric || content == OGGZ_CONTENT_SKELETON) && 
+            /* if we have no metrics for this stream yet, then generate them */
+            if ((!stream->metric || content == OGGZ_CONTENT_SKELETON) &&
                 (oggz->flags & OGGZ_AUTO)) {
               oggz_auto_read_bos_packet (oggz, op, serialno, NULL);
             }
 
             /* attempt to determine granulepos for this packet */
             if (oggz->flags & OGGZ_AUTO) {
-              reader->current_granulepos = 
-                oggz_auto_calculate_granulepos (content, granulepos, stream, op); 
+              reader->current_granulepos =
+                oggz_auto_calculate_granulepos (content, granulepos, stream, op);
               /* make sure that we accept any "real" gaps in the granulepos */
               if (granulepos != -1 && reader->current_granulepos < granulepos) {
                 reader->current_granulepos = granulepos;
@@ -445,7 +445,7 @@ oggz_read_sync (OGGZ * oggz)
 	  }
 
           stream->last_granulepos = reader->current_granulepos;
-        
+
           /* Set unit on last packet of page */
           if ((oggz->metric || stream->metric) && reader->current_granulepos != -1) {
             reader->current_unit =
@@ -455,7 +455,7 @@ oggz_read_sync (OGGZ * oggz)
           if (stream->packetno == 1) {
             oggz_auto_read_comments (oggz, stream, serialno, op);
           }
-          
+
           /* Fill in position information. */
           pos->calc_granulepos = reader->current_granulepos;
           pos->begin_page_offset = reader->current_packet_begin_page_offset;
@@ -465,7 +465,7 @@ oggz_read_sync (OGGZ * oggz)
 
           /* Handle reverse buffering */
           if (oggz->flags & OGGZ_AUTO) {
-            /* While we are getting invalid granulepos values, store the 
+            /* While we are getting invalid granulepos values, store the
              * incoming packets in a dlist */
             if (reader->current_granulepos == -1) {
               OggzBufferedPacket *p;
@@ -553,9 +553,9 @@ prepare_position:
     }
 
     /* If we've got a stop already, don't read more data in */
-    if (cb_ret == OGGZ_STOP_OK || 
-	cb_ret == OGGZ_STOP_ERR || 
-	cb_ret == OGGZ_ERR_HOLE_IN_DATA) 
+    if (cb_ret == OGGZ_STOP_OK ||
+	cb_ret == OGGZ_STOP_ERR ||
+	cb_ret == OGGZ_ERR_HOLE_IN_DATA)
       return cb_ret;
 
     if(oggz_read_get_next_page (oggz, &og) < 0)
@@ -662,10 +662,10 @@ oggz_read (OGGZ * oggz, long n)
 
     if (bytes_read > 0) {
       ogg_sync_wrote (&reader->ogg_sync, bytes_read);
-      
+
       remaining -= bytes_read;
       nread += bytes_read;
-      
+
       cb_ret = oggz_read_sync (oggz);
       if (cb_ret == OGGZ_ERR_OUT_OF_MEMORY || cb_ret == OGGZ_ERR_HOLE_IN_DATA) {
         return cb_ret;

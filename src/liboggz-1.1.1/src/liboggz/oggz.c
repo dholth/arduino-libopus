@@ -95,7 +95,7 @@ oggz_new (int flags)
   if (oggz->streams == NULL) {
     goto err_oggz_new;
   }
-  
+
   oggz->all_at_eos = 0;
 
   oggz->metric = NULL;
@@ -195,7 +195,7 @@ oggz_stream_clear (void * data)
 
   if (stream->calculate_data != NULL)
     oggz_free (stream->calculate_data);
-  
+
   oggz_free (stream);
 
   return 0;
@@ -217,7 +217,7 @@ oggz_close (OGGZ * oggz)
 
   oggz_dlist_deliter(oggz->packet_buffer, oggz_read_free_pbuffers);
   oggz_dlist_delete(oggz->packet_buffer);
-  
+
   if (oggz->metric_internal)
     oggz_free (oggz->metric_user_data);
 
@@ -269,7 +269,7 @@ ogg_int64_t
 oggz_tell_granulepos (OGGZ * oggz)
 {
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
-  
+
   if (oggz->flags & OGGZ_WRITE) {
     return OGGZ_ERR_INVALID;
   }
@@ -368,7 +368,7 @@ oggz_add_stream (OGGZ * oggz, long serialno)
   stream->read_page_user_data = NULL;
 
   stream->calculate_data = NULL;
-  
+
   oggz_vector_insert_p (oggz->streams, stream);
 
   return stream;

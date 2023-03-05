@@ -38,6 +38,7 @@
 
 #include "opus_config.h"
 
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -55,7 +56,7 @@ oggz_io_read (OGGZ * oggz, void * buf, size_t n)
   size_t bytes;
 
   if (oggz->file != NULL) {
-    if ((bytes = fread (buf, 1, n, oggz->file)) == 0) {
+    if ((bytes = read (fileno(oggz->file), buf, n)) == 0) {
       if (ferror (oggz->file)) {
         return (size_t) OGGZ_ERR_SYSTEM;
       }
@@ -90,7 +91,7 @@ oggz_io_write (OGGZ * oggz, void * buf, size_t n)
   else {
     return (size_t) OGGZ_ERR_INVALID;
   }
-    
+
   return bytes;
 }
 

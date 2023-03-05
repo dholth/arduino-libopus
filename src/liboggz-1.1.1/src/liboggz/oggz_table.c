@@ -103,7 +103,7 @@ oggz_table_insert (OggzTable * table, long key, void * data)
 
   if (oggz_vector_insert_l (table->keys, key) == -1)
     return NULL;
-  
+
   if (oggz_vector_insert_p (table->data, data) == NULL) {
     oggz_vector_remove_l (table->keys, key);
     return NULL;
@@ -128,7 +128,7 @@ oggz_table_remove (OggzTable * table, long key)
       return -1;
     }
   }
-  
+
   return 0;
 }
 

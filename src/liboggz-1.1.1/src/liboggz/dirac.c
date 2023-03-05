@@ -153,7 +153,7 @@ dirac_parse_info (dirac_info *info, unsigned char * data, long len)
   info->video_format = video_format = dirac_uint( &bs ); /* index */
 
   if (video_format >= (sizeof(dirac_fsize_tbl) / sizeof(dirac_fsize_tbl[0]))) {
-    return -1; 
+    return -1;
   }
 
   info->width = dirac_fsize_tbl[video_format].width;
