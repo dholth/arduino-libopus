@@ -30,8 +30,9 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "opus_config.h"
+#include "config.h"
 
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "oggz/oggz.h"
@@ -73,7 +74,7 @@ my_io_read (void * user_handle, void * buf, size_t n)
 {
   FILE * f = (FILE *)user_handle;
 
-  return fread (buf, 1, n, f);
+  return read (fileno(f), buf, n);
 }
 
 static int

@@ -52,7 +52,7 @@ oggz_dlist_new (void) {
 
   OggzDList *dlist;
   OggzDListElem *dummy_front, *dummy_back;
-  
+
   dlist = oggz_malloc(sizeof(OggzDList));
   if (dlist == NULL) return NULL;
 

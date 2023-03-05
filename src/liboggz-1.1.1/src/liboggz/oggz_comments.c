@@ -664,6 +664,10 @@ oggz_comments_decode (OGGZ * oggz, long serialno,
          oggz_free (nvalue);
       }
 
+      /* If we nulled out an equal sign, put it back. */
+      if (value)
+         value[-1] = '=';
+
       c+=len;
    }
 
@@ -830,6 +834,10 @@ oggz_comment_generate(OGGZ * oggz, long serialno,
     {0x04, 0x00, 0x00, 0x00};
   const unsigned char preamble_kate[9] =
     {0x81, 0x6b, 0x61, 0x74, 0x65, 0x00, 0x00, 0x00, 0x00};
+  const unsigned char preamble_opus[8] =
+    {'O', 'p',  'u', 's', 'T', 'a', 'g', 's'};
+  const unsigned char preamble_vp8[7] =
+    {0x4f, 'V',  'P', '8', '0', 002, ' '};
 
 
   switch(packet_type) {
@@ -848,6 +856,14 @@ oggz_comment_generate(OGGZ * oggz, long serialno,
     case OGGZ_CONTENT_KATE:
       preamble_length = sizeof preamble_kate;
       preamble = preamble_kate;
+      break;
+    case OGGZ_CONTENT_OPUS:
+      preamble_length = sizeof preamble_opus;
+      preamble = preamble_opus;
+      break;
+    case OGGZ_CONTENT_VP8:
+      preamble_length = sizeof preamble_vp8;
+      preamble = preamble_vp8;
       break;
     case OGGZ_CONTENT_PCM:
     case OGGZ_CONTENT_SPEEX:
@@ -909,7 +925,7 @@ oggz_comment_generate(OGGZ * oggz, long serialno,
   return c_packet;
 }
 
-/* In Flac, OggPCM, Speex, Theora Vorbis, and Kate the comment packet will
+/* In Flac, OggPCM, Speex, Theora, Vorbis, Kate, Opus and VP8, the comment packet will
    be second in the stream, i.e. packetno=1, and it will have granulepos=0 */
 ogg_packet *
 oggz_comments_generate(OGGZ * oggz, long serialno,

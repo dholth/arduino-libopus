@@ -34,7 +34,7 @@
   Created: 20041231
 */
 
-#include "opus_config.h"
+#include "config.h"
 
 #include <stdio.h>
 #include <stdlib.h>

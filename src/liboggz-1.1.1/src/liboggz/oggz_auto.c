@@ -174,8 +174,15 @@ auto_theora (OGGZ * oggz, long serialno, unsigned char * data, long length, void
 			OGGZ_AUTO_MULT * (ogg_int64_t)fps_denominator);
   oggz_set_granuleshift (oggz, serialno, keyframe_shift);
 
-  if (version > THEORA_VERSION(3,2,0))
-    oggz_set_first_granule (oggz, serialno, 1);
+  /* the theora granpos->time calculation always adds one to the
+     index, but 3.2.0 streams count from zero and later versions count
+     from one.  So... for a 3.2.0 stream, the intitial frame number is
+     zero, but we add one (or in this case, subtract -1 in
+     oggz_metric_default_granuleshift).  For 3.2.1 and later, we
+     subtract one from the first frame number (1) to get an initial index
+     of zero, then add one to compute time for a net change of zero */
+  if (version < THEORA_VERSION(3,2,0))
+    oggz_set_first_granule (oggz, serialno, -1);
 
   oggz_stream_set_numheaders (oggz, serialno, 3);
 
@@ -389,6 +396,68 @@ auto_dirac (OGGZ * oggz, long serialno, unsigned char * data, long length, void 
 }
 
 static int
+auto_opus (OGGZ * oggz, long serialno, unsigned char * data, long length, void * user_data)
+{
+  unsigned char * header = data;
+  unsigned char nchannels;
+
+  if (length < 19) return 0;
+
+  nchannels = data[9];
+  if (nchannels < 1) {
+#ifdef DEBUG
+    printf("Opus header with 0 channels, invalid");
+#endif
+    return 0;
+  }
+
+#ifdef DEBUG
+  printf ("Got opus, %d channels\n", nchannels);
+#endif
+
+  oggz_set_granulerate (oggz, serialno, 48000, OGGZ_AUTO_MULT);
+  oggz_set_granuleshift (oggz, serialno, 0);
+  oggz_set_first_granule (oggz, serialno, int16_le_at(&data[10]));  /* pre-skip */
+
+  oggz_stream_set_numheaders (oggz, serialno, 2);
+
+  return 1;
+}
+
+static int
+auto_vp8 (OGGZ * oggz, long serialno, unsigned char * data, long length, void * user_data)
+{
+  unsigned char * header = data;
+  ogg_int32_t gps_numerator, gps_denominator;
+
+  if (length < 26) return 0;
+
+  /* BOS header magic */
+  if (data[0] != 0x4f) return 0;
+  if (memcmp(data+1, "VP80", 4)) return 0;
+  if (data[5] != 1) return 0;
+
+  if (data[6] != 1) {
+#ifdef DEBUG
+    printf("VP8 major version %u unsupported\n", data[6]);
+#endif
+    return 0;
+  }
+
+  gps_numerator = int32_be_at(&header[18]);
+  gps_denominator = int32_be_at(&header[22]);
+
+  oggz_set_granulerate (oggz, serialno, gps_numerator,
+                        OGGZ_AUTO_MULT * gps_denominator);
+  oggz_set_granuleshift (oggz, serialno, 32);
+
+  /* The Vorbis comment header is optional for VP8 */
+  oggz_stream_set_numheaders (oggz, serialno, 1);
+
+  return 1;
+}
+
+static int
 auto_fisbone (OGGZ * oggz, long serialno, unsigned char * data, long length, void * user_data)
 {
   unsigned char * header = data;
@@ -549,6 +618,197 @@ auto_calc_celt (ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
   return 0;
 
 }
+
+/*
+ * The first two Opus packets are header and comment packets (granulepos = 0)
+ */
+
+static ogg_int64_t
+opus_packet_duration (ogg_packet *op)
+{
+  static const unsigned int durations[32] = {
+    480, 960, 1920, 2880, /* Silk NB */
+    480, 960, 1920, 2880, /* Silk MB */
+    480, 960, 1920, 2880, /* Silk WB */
+    480, 960,             /* Hybrid SWB */
+    480, 960,             /* Hybrid FB */
+    120, 240, 480, 960,   /* CELT NB */
+    120, 240, 480, 960,   /* CELT NB */
+    120, 240, 480, 960,   /* CELT NB */
+    120, 240, 480, 960,   /* CELT NB */
+  };
+  unsigned char toc, code, nframes;
+  int frame_duration, duration;
+
+  if (op->bytes < 1)
+    return 0;
+
+  toc = op->packet[0];
+  code = toc & 3;
+  frame_duration = durations[toc >> 3];
+
+  if (code == 3 && op->bytes < 2)
+    return 0;
+
+  switch (code) {
+    case 0: nframes = 1; break;
+    case 1: case 2: nframes = 2; break;
+    case 3: nframes = op->packet[1] & 63; break;
+  }
+
+  duration = frame_duration * nframes;
+  if (duration > 5760)
+    return 0;
+  return duration;
+}
+
+typedef struct {
+  int headers_encountered;
+  int encountered_first_data_packet;
+  ogg_int64_t queued_duration;
+} auto_calc_opus_info_t;
+
+static ogg_int64_t
+auto_calc_opus(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
+
+  auto_calc_opus_info_t *info
+          = (auto_calc_opus_info_t *)stream->calculate_data;
+
+  if (stream->calculate_data == NULL) {
+    stream->calculate_data = oggz_malloc(sizeof(auto_calc_opus_info_t));
+    if (stream->calculate_data == NULL) return -1;
+    info = stream->calculate_data;
+    info->encountered_first_data_packet = 0;
+    info->headers_encountered = 1;
+    info->queued_duration = 0;
+    return 0;
+  }
+
+  if (info->headers_encountered < 2) {
+    info->headers_encountered += 1;
+  } else {
+    info->encountered_first_data_packet = 1;
+  }
+
+  if (now > -1) {
+    return now;
+  }
+
+  if (info->encountered_first_data_packet) {
+    ogg_int64_t packet_duration = opus_packet_duration(op);
+    if (stream->last_granulepos > 0) {
+      ogg_int64_t this_gp = stream->last_granulepos + packet_duration;
+      return this_gp > stream->page_granulepos  /* end trimming */
+        && stream->page_granulepos >= stream->last_granulepos
+        ? stream->page_granulepos : this_gp;
+    }
+    info->queued_duration += packet_duration;
+    return -1;
+  }
+
+  return 0;
+
+}
+
+static ogg_int64_t
+auto_rcalc_opus(ogg_int64_t next_packet_gp, oggz_stream_t *stream,
+                ogg_packet *this_packet, ogg_packet *next_packet) {
+
+  auto_calc_opus_info_t *info = (auto_calc_opus_info_t *)stream->calculate_data;
+  ogg_int64_t this_packet_gp;
+
+  /* calculate granulepos in reverse, adjusting for end trimming */
+  if (next_packet_gp >= info->queued_duration) {
+    this_packet_gp = next_packet_gp - opus_packet_duration(next_packet);
+    if (this_packet_gp < info->queued_duration) {
+      this_packet_gp = info->queued_duration;  /* packet truncated */
+    }
+    info->queued_duration = 0;
+  } else {
+    /* multiple packets truncated */
+    this_packet_gp = next_packet_gp;
+    info->queued_duration -= opus_packet_duration(this_packet);
+  }
+  return this_packet_gp;
+}
+
+typedef struct {
+  int headers_encountered;
+  int encountered_first_data_packet;
+} auto_calc_vp8_info_t;
+
+static ogg_int64_t
+auto_calc_vp8(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
+  int header, keyframe, visible;
+
+  auto_calc_vp8_info_t *info
+          = (auto_calc_vp8_info_t *)stream->calculate_data;
+
+  if (stream->calculate_data == NULL) {
+    stream->calculate_data = oggz_malloc(sizeof(auto_calc_vp8_info_t));
+    if (stream->calculate_data == NULL) return -1;
+    info = stream->calculate_data;
+    info->encountered_first_data_packet = 0;
+    info->headers_encountered = 1;
+    return 0;
+  }
+
+  /* headers may be repeated interleaved between data packets */
+  header = op->bytes == 0 || op->packet[0] == 0x4f;
+  keyframe = !header && op->bytes > 0 && ((op->packet[0] & 1) == 0);
+  visible = !header && op->bytes > 0 && (((op->packet[0]>>4) & 1) != 0);
+
+  if (header) {
+    info->headers_encountered += 1;
+  } else {
+    info->encountered_first_data_packet = 1;
+  }
+
+  if (now > -1) {
+    return now;
+  }
+
+  if (info->encountered_first_data_packet) {
+    if (stream->last_granulepos > 0) {
+      if (header) {
+        return stream->last_granulepos;
+      } else {
+        /* add 1 to dist, zero if keyframes
+         * add 1 to invcnt if invisible, set to -1 if visible
+         * add 1 to pts if visible
+         */
+        ogg_int64_t pts = stream->last_granulepos >> 32;
+        ogg_int64_t invcnt = (stream->last_granulepos >> 30) & 3;
+        ogg_int64_t dist = (stream->last_granulepos >> 3) & 0x07ffffff;
+        ogg_int64_t granpos;
+
+        if (keyframe)
+          dist = 0;
+        else
+          dist++;
+
+        if (visible) {
+          pts++;
+          invcnt = 3;
+        } else {
+          if (invcnt == 3)
+            invcnt = 0;
+          else
+            invcnt++;
+        }
+
+        granpos = (pts<<32) | (invcnt<<30) | (dist<<3) | 0;
+        return granpos;
+      }
+    }
+
+    return -1;
+  }
+
+  return 0;
+}
+
+
 /*
  * Header packets are marked by a set MSB in the first byte.  Inter packets
  * are marked by a set 2MSB in the first byte.  Intra packets (keyframes)
@@ -944,7 +1204,7 @@ auto_calc_vorbis(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
 
 }
 
-ogg_int64_t
+static ogg_int64_t
 auto_rcalc_vorbis(ogg_int64_t next_packet_gp, oggz_stream_t *stream,
                   ogg_packet *this_packet, ogg_packet *next_packet) {
 
@@ -1098,6 +1358,8 @@ const oggz_auto_contenttype_t oggz_auto_codec_ident[] = {
   {"CELT    ", 8, "CELT", auto_celt, auto_calc_celt, NULL},
   {"\200kate\0\0\0", 8, "Kate", auto_kate, NULL, NULL},
   {"BBCD\0", 5, "Dirac", auto_dirac, NULL, NULL},
+  {"OpusHead", 8, "Opus", auto_opus, auto_calc_opus, auto_rcalc_opus},
+  {"\x4fVP80", 5, "VP8", auto_vp8, auto_calc_vp8, NULL},
   {"", 0, "Unknown", NULL, NULL, NULL}
 };
 
@@ -1204,6 +1466,7 @@ oggz_auto_read_comments (OGGZ * oggz, oggz_stream_t * stream, long serialno,
         offset = 7;
       break;
     case OGGZ_CONTENT_SPEEX:
+    case OGGZ_CONTENT_PCM:
       offset = 0; break;
     case OGGZ_CONTENT_THEORA:
       if (op->bytes > 7 && memcmp (op->packet, "\201theora", 7) == 0)
@@ -1219,6 +1482,16 @@ oggz_auto_read_comments (OGGZ * oggz, oggz_stream_t * stream, long serialno,
       if (op->bytes > 4 && (op->packet[0] & 0x7) == 4) {
         len = (op->packet[1]<<16) + (op->packet[2]<<8) + op->packet[3];
         offset = 4;
+      }
+      break;
+    case OGGZ_CONTENT_OPUS:
+      if (op->bytes > 8 && memcmp (op->packet, "OpusTags", 8) == 0) {
+        offset = 8;
+      }
+      break;
+    case OGGZ_CONTENT_VP8:
+      if (op->bytes > 7 && memcmp (op->packet, "\x4fVP80\002 ", 7) == 0) {
+        offset = 7;
       }
       break;
     default:

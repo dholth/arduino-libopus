@@ -119,7 +119,7 @@ oggz_seek_raw (OGGZ * oggz, oggz_off_t offset, int whence)
   ogg_sync_reset (&reader->ogg_sync);
 
   oggz_vector_foreach(oggz->streams, oggz_seek_reset_stream);
-  
+
   return offset_at;
 }
 
@@ -255,7 +255,7 @@ oggz_get_next_page (OGGZ * oggz, ogg_page * og)
     /* didn't need to do any reading -- accumulate the page_offset */
     oggz->offset += page_offset;
   }
-  
+
   ret = oggz->offset + more;
 
   return ret;
@@ -442,7 +442,7 @@ oggz_scan_for_page (OGGZ * oggz, ogg_page * og, ogg_int64_t unit_target,
       serialno = ogg_page_serialno (og);
       granule_at = ogg_page_granulepos (og);
       unit_at = oggz_get_unit (oggz, serialno, granule_at);
-      
+
       return offset_at;
 #endif
     }
@@ -522,11 +522,11 @@ guess (ogg_int64_t unit_at, ogg_int64_t unit_target,
   printf ("oggz_seek::guess: guess_ratio %lld = (%lld - %lld) / (%lld - %lld)\n",
 	  guess_ratio, unit_target, unit_begin, unit_at, unit_begin);
 #endif
-  
+
   offset_guess = offset_begin +
     (oggz_off_t)(((offset_end - offset_begin) * guess_ratio) /
 		 GUESS_MULTIPLIER);
-  
+
   return offset_guess;
 }
 
@@ -636,7 +636,7 @@ oggz_bounded_seek_set (OGGZ * oggz,
 #endif
     return -1;
   }
-  
+
   if (offset_end == -1 && (offset_end = oggz_offset_end (oggz)) == -1) {
 #ifdef DEBUG
     printf ("oggz_bounded_seek_set: oggz_offset_end == -1, FAIL\n");
