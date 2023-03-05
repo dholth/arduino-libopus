@@ -32,7 +32,7 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "opus_config.h"
+#include "config.h"
 
 #include <stdio.h>
 #include <stdlib.h>

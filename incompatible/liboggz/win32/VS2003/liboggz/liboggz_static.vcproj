@@ -181,7 +181,7 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\opus_config.h">
+				RelativePath="..\..\config.h">
 			</File>
 			<File
 				RelativePath="..\..\..\include\oggz\oggz.h">

@@ -30,7 +30,7 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "opus_config.h"
+#include "config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -168,15 +168,21 @@ gp_to_granule (OGGZ * oggz, long serialno, ogg_int64_t granulepos)
 {
   int granuleshift;
   ogg_int64_t iframe, pframe, granule;
+  OggzStreamContent content;
 
   granuleshift = oggz_get_granuleshift (oggz, serialno);
+  content = oggz_stream_get_content (oggz, serialno);
 
-  iframe = granulepos >> granuleshift;
-  pframe = granulepos - (iframe << granuleshift);
-  granule = iframe+pframe;
+  if (content == OGGZ_CONTENT_VP8) {
+    granule = granulepos >> granuleshift;
+  } else {
+    iframe = granulepos >> granuleshift;
+    pframe = granulepos - (iframe << granuleshift);
+    granule = iframe+pframe;
 
-  if (oggz_stream_get_content (oggz, serialno) == OGGZ_CONTENT_DIRAC)
-    granule >>= 9;
+    if (content == OGGZ_CONTENT_DIRAC)
+      granule >>= 9;
+  }
 
   return granule;
 }
@@ -249,7 +255,8 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   OVData * ovdata = (OVData *)user_data;
   ogg_int64_t gpos = ogg_page_granulepos((ogg_page *)og);
   OggzStreamContent content_type;
-  int packets, packetno, headers, ret = 0;
+  int packets, ret = 0;
+  ptrdiff_t packetno, headers;
 
   if (ovdata->chain_ended) {
     ovdata_clear (ovdata);
@@ -295,7 +302,7 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
       fprintf (stderr, "serialno %010lu: missing *** bos\n", serialno);
     }
 
-    packetno = (int)oggz_table_lookup (ovdata->packetno, serialno);
+    packetno = (ptrdiff_t)oggz_table_lookup (ovdata->packetno, serialno);
     headers = oggz_stream_get_numheaders (oggz, serialno);
     if (packetno < headers-1) {
       /* The previous page was headers, and more are expected */
@@ -310,7 +317,7 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
         ret = log_error ();
         fprintf (stderr, "serialno %010lu: Terminal header page contains non-header packet\n", serialno);
       }
-    } else if (packetno == headers) {
+    } else if (packetno == headers-1) {
       /* This is the next page after the page on which the last header finished */
       if (ogg_page_continued (og)) {
         ret = log_error ();

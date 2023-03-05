@@ -142,7 +142,7 @@ SOURCE=..\src\liboggz\oggz_write.c
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=.\opus_config.h
+SOURCE=.\config.h
 # End Source File
 # Begin Source File
 

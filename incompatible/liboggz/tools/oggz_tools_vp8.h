@@ -29,23 +29,22 @@
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef __OGGZ_TOOLS_DIRAC_H__
-#define __OGGZ_TOOLS_DIRAC_H__
+#ifndef __OGGZ_TOOLS_VP8_H__
+#define __OGGZ_TOOLS_VP8_H__
 
 #include "config.h"
 
 /*
- * Dirac specific granulepos interpretation
+ * VP8 specific granulepos interpretation
  */
-struct ot_dirac_gpos {
-  ogg_uint32_t pt;
+struct ot_vp8_gpos {
+  ogg_uint32_t pts;
+  ogg_int16_t invcnt;
   ogg_uint16_t dist;
-  ogg_uint16_t delay;
-  ogg_int64_t dt;
 };
 
-/* Parse a granulepos value using Dirac interpretation */
-void ot_dirac_gpos_parse (ogg_int64_t iframe, ogg_int64_t pframe,
-                          struct ot_dirac_gpos * dg);
+/* Parse a granulepos value using VP8 interpretation */
+void ot_vp8_gpos_parse (ogg_int64_t iframe, ogg_int64_t pframe,
+                        struct ot_vp8_gpos * vg);
 
-#endif /* __OGGZ_TOOLS_DIRAC_H__ */
+#endif /* __OGGZ_TOOLS_VP8_H__ */
