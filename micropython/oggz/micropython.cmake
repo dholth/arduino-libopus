@@ -28,11 +28,11 @@ set(OP_DISABLE_EXAMPLES ON)
 set(OP_DISABLE_DOCS ON)
 set(OP_HAVE_LIBM OFF)
 
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../..)
+include(${CMAKE_CURRENT_LIST_DIR}/../../CMakeLists.txt)
 
 # set_property(TARGET opusfile PROPERTY C_STANDARD 99)
 
 # target_include_directories(opusfile PUBLIC $<BUILD_INTERFACE:${arduino_libopus_SOURCE_DIR}/src>)
 
 # Link our INTERFACE library to the usermod target.
-target_link_libraries(usermod INTERFACE usermod_opus arduino_libopus)
+target_link_libraries(usermod INTERFACE usermod_opus)

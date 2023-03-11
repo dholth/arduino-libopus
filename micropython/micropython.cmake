@@ -3,5 +3,6 @@
 # Paths are absolute, and ${CMAKE_CURRENT_LIST_DIR} can be
 # used to prefix subdirectories.
 
-# Add opus
+# Add the oggz (opus read with oggz) example.
 include(${CMAKE_CURRENT_LIST_DIR}/oggz/micropython.cmake)
+
