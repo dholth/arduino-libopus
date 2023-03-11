@@ -28,11 +28,30 @@ set(OP_DISABLE_EXAMPLES ON)
 set(OP_DISABLE_DOCS ON)
 set(OP_HAVE_LIBM OFF)
 
-include(${CMAKE_CURRENT_LIST_DIR}/../../CMakeLists.txt)
+
+## adapted from top-level CMakeLists.txt
+
+# lots of warnings and all warnings as errors
+## add_compile_options(-Wall -Wextra )
+set(CMAKE_CXX_STANDARD 17)
+
+file(GLOB_RECURSE SRC_LIST_C CONFIGURE_DEPENDS  "${CMAKE_CURRENT_LIST_DIR}/../../src/*.c" )
+
+# define libraries
+add_library (arduino_libopus ${SRC_LIST_C})
+
+# prevent compile errors
+target_compile_options(arduino_libopus PRIVATE -DARDUINO)
+
+# define location for header files
+target_include_directories(arduino_libopus PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../../src  )
+
+## back to micropython land
+
 
 # set_property(TARGET opusfile PROPERTY C_STANDARD 99)
 
 # target_include_directories(opusfile PUBLIC $<BUILD_INTERFACE:${arduino_libopus_SOURCE_DIR}/src>)
 
 # Link our INTERFACE library to the usermod target.
-target_link_libraries(usermod INTERFACE usermod_opus)
+target_link_libraries(usermod INTERFACE usermod_opus arduino_libopus)

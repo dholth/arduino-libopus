@@ -211,14 +211,10 @@ const mp_obj_module_t oggz_module = {
     .globals = (mp_obj_dict_t *)&oggz_module_globals,
 };
 
+// TODO is this defined in CIRCUITPYTHON builds?
+#ifdef CIRCUITPYTHON
 // Register the module to make it available in Python.
 MP_REGISTER_MODULE(MP_QSTR_oggz, oggz_module, 1);
-
-// Otherwise missing symbols
-// int fprintf (void *__restrict, const char *__restrict, ...) {}
-
-// extern int __errno = 0;
-
-// void abort_(void) {
-//     nlr_raise(mp_obj_new_exception(mp_load_global(MP_QSTR_RuntimeError)));
-// }
+#else
+MP_REGISTER_MODULE(MP_QSTR_oggz, oggz_module);
+#endif
