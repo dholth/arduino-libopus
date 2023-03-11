@@ -28,26 +28,7 @@ set(OP_DISABLE_EXAMPLES ON)
 set(OP_DISABLE_DOCS ON)
 set(OP_HAVE_LIBM OFF)
 
-# set_property(TARGET ogg PROPERTY C_STANDARD 99)
-# set_property(TARGET opus PROPERTY C_STANDARD 99)
-
-# build with libopus
-include(FetchContent)
-FetchContent_Declare(arduino_libopus GIT_REPOSITORY "https://github.com/pschatzmann/arduino-libopus.git" GIT_TAG main )
-FetchContent_GetProperties(arduino_libopus)
-if(NOT arduino_libopus_POPULATED)
-    FetchContent_Populate(arduino_libopus)
-    add_subdirectory(${arduino_libopus_SOURCE_DIR})
-endif()
-
-# # the arduino-libopus distribution doesn't include opusfile
-# include(FetchContent)
-# FetchContent_Declare(opusfile GIT_REPOSITORY "https://github.com/dholth/opusfile.git" GIT_TAG micropython )
-# FetchContent_GetProperties(opusfile)
-# if(NOT opusfile)
-#     FetchContent_Populate(opusfile)
-#     add_subdirectory(${opusfile_SOURCE_DIR})
-# endif()
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../..)
 
 # set_property(TARGET opusfile PROPERTY C_STANDARD 99)
 
