@@ -7,12 +7,14 @@
 #include "oggz/oggz.h"
 #include "opus.h"
 
+#ifdef CIRCUITPYTHON
 // small standard library
 int _fstat;
 int __gnu_thumb1_case_shi;
 int _close;
 int _isatty;
 int _lseek;
+#endif
 
 typedef struct _mp_obj_oggz_t
 {
